@@ -50,5 +50,35 @@ func main(){
 		fmt.Println("MESSAGE SENT "+ message.Message)
 
 	})
+
+	r.GET("/get-messages", func(c *gin.Context){
+		rows, err := db.Query("SELECT message FROM MESSAGES")
+		if err != nil {
+			fmt.Println("ERROR IN SELECT MESSAGES, ERROR= " + err.Error())
+			return
+		}
+		defer rows.Close()
+
+		var messages []string
+
+		for rows.Next() {
+			var message string
+
+			if err = rows.Scan(&message); err != nil {
+				fmt.Println("ERROR IN SCAN MESSAGE, ERROR= " + err.Error())
+				return
+			}
+			messages = append(messages, message)
+		}
+
+		if err = rows.Err(); err != nil {
+			fmt.Println("ERROR IN ROWS, ERROR= " + err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"messages": messages,
+		})
+	})
 	r.Run()
 }
